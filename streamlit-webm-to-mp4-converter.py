@@ -3,15 +3,15 @@ import os
 import tempfile
 from moviepy.editor import VideoFileClip
 
-def convert_webm_to_mp4(input_file):
+def convert_webm_to_mp4(input_file_path):
     # Create a temporary directory to store the converted file
     with tempfile.TemporaryDirectory() as temp_dir:
         # Generate output filename
-        output_filename = os.path.splitext(os.path.basename(input_file.name))[0] + ".mp4"
+        output_filename = os.path.splitext(os.path.basename(input_file_path))[0] + ".mp4"
         output_path = os.path.join(temp_dir, output_filename)
 
         # Convert WebM to MP4
-        video = VideoFileClip(input_file.name)
+        video = VideoFileClip(input_file_path)
         video.write_videofile(output_path, codec="libx264", audio_codec="aac")
 
         # Read the converted file
@@ -31,31 +31,35 @@ def main():
     if uploaded_file is not None:
         st.write("File uploaded: ", uploaded_file.name)
         
+        # Save the uploaded file temporarily
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_file:
+            temp_file.write(uploaded_file.getvalue())
+            temp_file_path = temp_file.name
+
         # Convert button
         if st.button("Convert to MP4"):
-            # Save the uploaded file temporarily
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as temp_file:
-                temp_file.write(uploaded_file.getvalue())
-                temp_file_path = temp_file.name
+            try:
+                # Convert the file
+                with st.spinner("Converting WebM to MP4..."):
+                    output_filename, converted_file = convert_webm_to_mp4(temp_file_path)
 
-            # Convert the file
-            with st.spinner("Converting WebM to MP4..."):
-                output_filename, converted_file = convert_webm_to_mp4(temp_file)
+                # Remove the temporary file
+                os.unlink(temp_file_path)
 
-            # Remove the temporary file
-            os.unlink(temp_file_path)
+                # Display download button for the converted file
+                st.success("Conversion completed!")
+                st.download_button(
+                    label="Download MP4",
+                    data=converted_file,
+                    file_name=output_filename,
+                    mime="video/mp4"
+                )
 
-            # Display download button for the converted file
-            st.success("Conversion completed!")
-            st.download_button(
-                label="Download MP4",
-                data=converted_file,
-                file_name=output_filename,
-                mime="video/mp4"
-            )
+                # Display video player
+                st.video(converted_file)
 
-            # Display video player
-            st.video(converted_file)
+            except Exception as e:
+                st.error(f"An error occurred during conversion: {e}")
 
     else:
         st.info("Please upload a WebM file using the sidebar.")
