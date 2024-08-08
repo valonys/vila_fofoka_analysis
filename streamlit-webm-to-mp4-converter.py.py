@@ -1,8 +1,8 @@
 import streamlit as st
 import os
 import tempfile
-from moviepy.editor import VideoFileClip
-import ffmpeg
+import cv2
+import numpy as np
 
 def preprocess_webm(input_file_path):
     # Create a temporary directory to store the preprocessed file
@@ -27,8 +27,22 @@ def convert_webm_to_mp4(input_file_path):
         output_path = os.path.join(temp_dir, output_filename)
 
         # Convert WebM to MP4
-        video = VideoFileClip(input_file_path)
-        video.write_videofile(output_path, codec="libx264", audio_codec="aac")
+        cap = cv2.VideoCapture(input_file_path)
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+
+        video_writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+            video_writer.write(frame)
+
+        cap.release()
+        video_writer.release()
 
         # Read the converted file
         with open(output_path, "rb") as file:
