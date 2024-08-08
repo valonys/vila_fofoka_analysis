@@ -1,7 +1,28 @@
 import streamlit as st
 import os
 import tempfile
+import subprocess
 from moviepy.editor import VideoFileClip
+
+def preprocess_webm(input_file_path):
+    # Create a temporary directory to store the preprocessed file
+    with tempfile.TemporaryDirectory() as temp_dir:
+        preprocessed_filename = os.path.splitext(os.path.basename(input_file_path))[0] + "_preprocessed.webm"
+        preprocessed_path = os.path.join(temp_dir, preprocessed_filename)
+
+        # Run ffmpeg to preprocess the file
+        command = [
+            "ffmpeg", "-y", "-i", input_file_path,
+            "-c:v", "copy", "-c:a", "copy",
+            preprocessed_path
+        ]
+        subprocess.run(command, check=True)
+
+        # Read the preprocessed file
+        with open(preprocessed_path, "rb") as file:
+            preprocessed_file = file.read()
+
+    return preprocessed_path, preprocessed_file
 
 def convert_webm_to_mp4(input_file_path):
     # Create a temporary directory to store the converted file
@@ -39,12 +60,17 @@ def main():
         # Convert button
         if st.button("Convert to MP4"):
             try:
-                # Convert the file
-                with st.spinner("Converting WebM to MP4..."):
-                    output_filename, converted_file = convert_webm_to_mp4(temp_file_path)
+                # Preprocess the file
+                with st.spinner("Preprocessing WebM file..."):
+                    preprocessed_path, preprocessed_file = preprocess_webm(temp_file_path)
 
-                # Remove the temporary file
+                # Convert the preprocessed file
+                with st.spinner("Converting WebM to MP4..."):
+                    output_filename, converted_file = convert_webm_to_mp4(preprocessed_path)
+
+                # Remove the temporary files
                 os.unlink(temp_file_path)
+                os.unlink(preprocessed_path)
 
                 # Display download button for the converted file
                 st.success("Conversion completed!")
