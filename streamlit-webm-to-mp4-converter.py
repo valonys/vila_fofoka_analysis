@@ -3,8 +3,17 @@ import os
 import tempfile
 import subprocess
 from moviepy.editor import VideoFileClip
+import shutil
+
+def get_ffmpeg_path():
+    # Update this path to where ffmpeg is installed on your system if it's not in the PATH
+    ffmpeg_path = "ffmpeg"  # default to using system's PATH
+    if not shutil.which("ffmpeg"):
+        ffmpeg_path = "/usr/local/bin/ffmpeg"  # example path for Unix-based systems
+    return ffmpeg_path
 
 def preprocess_webm(input_file_path):
+    ffmpeg_path = get_ffmpeg_path()
     # Create a temporary directory to store the preprocessed file
     with tempfile.TemporaryDirectory() as temp_dir:
         preprocessed_filename = os.path.splitext(os.path.basename(input_file_path))[0] + "_preprocessed.webm"
@@ -12,7 +21,7 @@ def preprocess_webm(input_file_path):
 
         # Run ffmpeg to preprocess the file
         command = [
-            "ffmpeg", "-y", "-i", input_file_path,
+            ffmpeg_path, "-y", "-i", input_file_path,
             "-c:v", "copy", "-c:a", "copy",
             preprocessed_path
         ]
