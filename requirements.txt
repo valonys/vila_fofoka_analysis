@@ -1,5 +1,0 @@
-streamlit==1.10.0
-moviepy==1.0.3
-ffmpeg-python==0.2.1
-opencv-python==4.5.5.64
-numpy==1.21.2
