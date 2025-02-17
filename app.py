@@ -36,7 +36,7 @@ def generate_chat_response(prompt, history=[]):
         }
 
         response = requests.post(url, headers=headers, json=data, stream=True)
-        response.raise_for_status()
+        response.raise_for_status()  # Raise an error for bad status codes
 
         # Stream the response
         full_response = ""
@@ -44,15 +44,23 @@ def generate_chat_response(prompt, history=[]):
             if line:
                 decoded_line = line.decode("utf-8")
                 if decoded_line.startswith("data: "):
-                    chunk = json.loads(decoded_line[6:])
-                    if "choices" in chunk and chunk["choices"]:
-                        delta = chunk["choices"][0].get("delta", {}).get("content", "")
-                        full_response += delta
-                        yield delta
+                    try:
+                        chunk = json.loads(decoded_line[6:])  # Remove "data: " prefix
+                        if "choices" in chunk and chunk["choices"]:
+                            delta = chunk["choices"][0].get("delta", {}).get("content", "")
+                            full_response += delta
+                            yield delta
+                    except json.JSONDecodeError as e:
+                        st.error(f"Error decoding JSON: {str(e)}")
+                        st.error(f"Received data: {decoded_line}")
+                        yield None
         yield full_response
 
+    except requests.exceptions.RequestException as e:
+        st.error(f"API request failed: {str(e)}")
+        yield None
     except Exception as e:
-        st.error(f"Error generating chat response: {str(e)}")
+        st.error(f"Unexpected error: {str(e)}")
         yield None
 
 # Streamlit App
