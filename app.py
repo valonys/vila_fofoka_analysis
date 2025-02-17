@@ -20,7 +20,7 @@ headers = {
     "Content-Type": "application/json"
 }
 
-# Function to generate chat responses
+# Function to generate chat responses with streaming
 def generate_chat_response(prompt, history=[]):
     try:
         messages = [
@@ -31,18 +31,29 @@ def generate_chat_response(prompt, history=[]):
         data = {
             "model": "grok-beta",
             "messages": messages,
-            "stream": False,
+            "stream": True,  # Enable streaming
             "temperature": 0
         }
 
-        response = requests.post(url, headers=headers, json=data)
+        response = requests.post(url, headers=headers, json=data, stream=True)
         response.raise_for_status()
-        result = response.json()
-        return result['choices'][0]['message']['content']
+
+        # Stream the response
+        full_response = ""
+        for line in response.iter_lines():
+            if line:
+                decoded_line = line.decode("utf-8")
+                if decoded_line.startswith("data: "):
+                    chunk = json.loads(decoded_line[6:])
+                    if "choices" in chunk and chunk["choices"]:
+                        delta = chunk["choices"][0].get("delta", {}).get("content", "")
+                        full_response += delta
+                        yield delta
+        yield full_response
 
     except Exception as e:
         st.error(f"Error generating chat response: {str(e)}")
-        return None
+        yield None
 
 # Streamlit App
 st.title("English Tutor Chat App")
@@ -62,11 +73,17 @@ if prompt := st.chat_input("Enter your message..."):
     with st.chat_message("user", avatar="👨‍💻"):
         st.markdown(prompt)
 
-    # Generate chat response
+    # Generate chat response with streaming
     history = [{"role": msg["role"], "content": msg["content"]} for msg in st.session_state.chat_history]
-    response = generate_chat_response(prompt, history)
+    response_generator = generate_chat_response(prompt, history)
 
-    if response:
-        with st.chat_message("assistant", avatar="🤖"):
-            st.markdown(response)
-        st.session_state.chat_history.append({"role": "assistant", "content": response})
+    with st.chat_message("assistant", avatar="🤖"):
+        message_placeholder = st.empty()
+        full_response = ""
+        for chunk in response_generator:
+            if chunk:
+                full_response += chunk
+                message_placeholder.markdown(full_response + "▌")
+        message_placeholder.markdown(full_response)
+
+    st.session_state.chat_history.append({"role": "assistant", "content": full_response})
