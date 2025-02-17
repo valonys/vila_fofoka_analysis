@@ -1,0 +1,21 @@
+# Ignore virtual environments
+__pycache__/
+venv/
+env/
+
+# Ignore poetry cache
+.pypoetry/
+
+# Ignore sensitive files
+credentials.json
+.env
+
+# Ignore Streamlit cache
+.streamlit/
+
+# Ignore IDE-specific files
+.vscode/
+.idea/
+
+# Ignore Docker build artifacts
+/build/
