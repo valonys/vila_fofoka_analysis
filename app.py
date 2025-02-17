@@ -75,4 +75,60 @@ def generate_response(prompt):
             "https://api.x.ai/v1/chat/completions",
             headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
             json={
-                "model": "
+                "model": "grok-beta",
+                "messages": messages,
+                "temperature": 0.3,
+                "stream": True
+            },
+            stream=True
+        )
+        
+        full_response = ""
+        for line in response.iter_lines():
+            if line:
+                chunk = line.decode("utf-8").replace("data: ", "")
+                if chunk == "[DONE]": break
+                try:
+                    data = json.loads(chunk)
+                    delta = data["choices"][0]["delta"].get("content", "")
+                    full_response += delta
+                    yield delta
+                except:
+                    continue
+        
+        # Calculate metrics
+        tokens = len(full_response.split())
+        speed = tokens / (time.time() - start)
+        yield f"\n\n🔑 Tokens: {tokens} | 🚀 Speed: {speed:.1f}t/s | 💵 Cost: ${tokens*0.00002:.4f}"
+        
+    except Exception as e:
+        yield f"❌ Error: {str(e)}"
+
+# Chat interface
+for msg in st.session_state.chat_history:
+    with st.chat_message(msg["role"], avatar="🧑💻" if msg["role"] == "user" else "🤖"):
+        st.markdown(msg["content"])
+
+if prompt := st.chat_input("Ask about your document..."):
+    # Add user message with optional file context
+    display_prompt = prompt
+    if st.session_state.file_context:
+        display_prompt = f"📄 Document Analysis Request:\n{prompt}"
+    
+    st.session_state.chat_history.append({"role": "user", "content": display_prompt})
+    
+    with st.chat_message("user", avatar="🧑💻"):
+        st.markdown(display_prompt)
+    
+    # Generate and stream response
+    with st.chat_message("assistant", avatar="🤖"):
+        response_placeholder = st.empty()
+        full_response = ""
+        
+        for chunk in generate_response(prompt):
+            full_response += chunk
+            response_placeholder.markdown(full_response + "▌")
+        
+        response_placeholder.markdown(full_response)
+    
+    st.session_state.chat_history.append({"role": "assistant", "content": full_response})
