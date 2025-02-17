@@ -22,7 +22,7 @@ def encode_image(image_file):
 def generate_caption(uploaded_image):
     try:
         base64_image = encode_image(uploaded_image)
-        url = "https://api.groq.com/v1/chat/completions"  # Corrected API endpoint
+         url = "https://api.x.ai/v1/chat/completions"  # Corrected API endpoint
         headers = {
             "Authorization": f"Bearer {GROQ_API_KEY}",
             "Content-Type": "application/json",
