@@ -1,116 +1,54 @@
 import streamlit as st
-import base64
-import os
-import json
 import requests
+import json
+import os
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Set up Groq API Key
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-if not GROQ_API_KEY:
-    st.error("Please set the GROQ_API_KEY in your .env file.")
+# Set up API Key
+api_key = os.getenv("API_KEY")
+if not api_key:
+    st.error("Please set the API_KEY in your .env file.")
     st.stop()
 
-# Function to encode the image
-def encode_image(image_file):
-    return base64.b64encode(image_file.read()).decode('utf-8')
+# Define the endpoint and headers
+url = "https://api.x.ai/v1/chat/completions"
+headers = {
+    "Authorization": f"Bearer {api_key}",
+    "Content-Type": "application/json"
+}
 
-# Function to generate captions for images
-def generate_caption(uploaded_image):
+# Function to generate chat responses
+def generate_chat_response(prompt, history=[]):
     try:
-        base64_image = encode_image(uploaded_image)
-        url = "https://api.x.ai/v1/chat/completions"  # Corrected API endpoint
-        headers = {
-            "Authorization": f"Bearer {GROQ_API_KEY}",
-            "Content-Type": "application/json",
-        }
+        messages = [
+            {"role": "system", "content": "You are a top-notch English tutor, guide me appropriately"},
+            *history,
+            {"role": "user", "content": prompt},
+        ]
         data = {
-            "model": "grok-vision",  # Corrected model name
-            "messages": [
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": "What's in this image?"},
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/jpeg;base64,{base64_image}",
-                            },
-                        },
-                    ],
-                }
-            ],
+            "model": "grok-beta",
+            "messages": messages,
             "stream": False,
+            "temperature": 0
         }
 
         response = requests.post(url, headers=headers, json=data)
         response.raise_for_status()
         result = response.json()
-        return result["choices"][0]["message"]["content"]
-
-    except Exception as e:
-        st.error(f"Error generating caption: {str(e)}")
-        return None
-
-# Function to generate chat responses with streaming
-def generate_chat_response(prompt, history=[]):
-    try:
-        url = "https://api.groq.com/v1/chat/completions"  # Corrected API endpoint
-        headers = {
-            "Authorization": f"Bearer {GROQ_API_KEY}",
-            "Content-Type": "application/json",
-        }
-        messages = [
-            {"role": "system", "content": "You are a helpful assistant."},
-            *history,
-            {"role": "user", "content": prompt},
-        ]
-        data = {
-            "model": "grok-latest",  # Corrected model name
-            "messages": messages,
-            "stream": True,
-            "temperature": 0.7,
-        }
-
-        response = requests.post(url, headers=headers, json=data, stream=True)
-        response.raise_for_status()
-
-        # Stream the response
-        full_response = ""
-        for line in response.iter_lines():
-            if line:
-                decoded_line = line.decode("utf-8")
-                if decoded_line.startswith("data: "):
-                    chunk = json.loads(decoded_line[6:])
-                    if "choices" in chunk and chunk["choices"]:
-                        delta = chunk["choices"][0].get("delta", {}).get("content", "")
-                        full_response += delta
-                        yield delta
-        yield full_response
+        return result['choices'][0]['message']['content']
 
     except Exception as e:
         st.error(f"Error generating chat response: {str(e)}")
+        return None
 
 # Streamlit App
-st.title("Groq Vision & Chat App")
-
-# Image Captioning Section
-st.subheader("Image Captioning")
-uploaded_file = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
-if uploaded_file is not None:
-    st.image(uploaded_file, caption="Uploaded Image", use_container_width=True)
-    if st.button("Generate Caption"):
-        with st.spinner("Generating caption..."):
-            caption = generate_caption(uploaded_file)
-            if caption:
-                st.success("Caption Generated!")
-                st.write("**Caption:**", caption)
+st.title("English Tutor Chat App")
 
 # Chat Section
-st.subheader("Chat with Groq")
+st.subheader("Chat with the English Tutor")
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
@@ -124,16 +62,11 @@ if prompt := st.chat_input("Enter your message..."):
     with st.chat_message("user", avatar="👨‍💻"):
         st.markdown(prompt)
 
-    # Generate chat response with streaming
+    # Generate chat response
     history = [{"role": msg["role"], "content": msg["content"]} for msg in st.session_state.chat_history]
-    response_generator = generate_chat_response(prompt, history)
+    response = generate_chat_response(prompt, history)
 
-    with st.chat_message("assistant", avatar="🤖"):
-        message_placeholder = st.empty()
-        full_response = ""
-        for chunk in response_generator:
-            full_response += chunk
-            message_placeholder.markdown(full_response + "▌")
-        message_placeholder.markdown(full_response)
-
-    st.session_state.chat_history.append({"role": "assistant", "content": full_response})
+    if response:
+        with st.chat_message("assistant", avatar="🤖"):
+            st.markdown(response)
+        st.session_state.chat_history.append({"role": "assistant", "content": response})
