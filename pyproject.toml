@@ -1,17 +1,29 @@
 [tool.poetry]
-name = "Nerdz Vision"
+name = "valnerdzx-app"
 version = "0.1.0"
-description = "A Streamlit app with Groq Vision and Chat capabilities."
+description = "A Streamlit app for ValNerdzx with Grok API integration, file upload, and advanced features."
 authors = ["Ataliba Miguel <ataliba.miguel@valonylabs.com>"]
 license = "MIT"
-package-mode = false
+readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
-streamlit = "^1.25.0"
+python = "^3.8"
+streamlit = "^1.26.0"
 requests = "^2.31.0"
 python-dotenv = "^1.0.0"
+PyPDF2 = "^3.0.0"
+python-docx = "^0.8.11"
+pandas = "^2.0.0"
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+[tool.poetry.dev-dependencies]
+black = "^23.0.0"
+flake8 = "^6.0.0"
+pytest = "^7.0.0"
+
+[tool.poetry.scripts]
+valnerdzx = "app:main"
+
+[project.urls]
+Homepage = "https://github.com/achilela/vila_fofoka_analysis"
+Repository = "https://github.com/achilela/vila_fofoka_analysis"
+Issues = "https://github.com/achilela/vila_fofoka_analysis/issues"
