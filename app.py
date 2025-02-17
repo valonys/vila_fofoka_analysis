@@ -44,15 +44,19 @@ def generate_chat_response(prompt, history=[]):
             if line:
                 decoded_line = line.decode("utf-8")
                 if decoded_line.startswith("data: "):
+                    chunk_data = decoded_line[6:]  # Remove "data: " prefix
+                    if chunk_data == "[DONE]":
+                        # End of stream
+                        break
                     try:
-                        chunk = json.loads(decoded_line[6:])  # Remove "data: " prefix
+                        chunk = json.loads(chunk_data)
                         if "choices" in chunk and chunk["choices"]:
                             delta = chunk["choices"][0].get("delta", {}).get("content", "")
                             full_response += delta
                             yield delta
                     except json.JSONDecodeError as e:
                         st.error(f"Error decoding JSON: {str(e)}")
-                        st.error(f"Received data: {decoded_line}")
+                        st.error(f"Received data: {chunk_data}")
                         yield None
         yield full_response
 
