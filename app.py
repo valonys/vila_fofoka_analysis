@@ -53,12 +53,11 @@ def generate_chat_response(prompt, history=[]):
                         if "choices" in chunk and chunk["choices"]:
                             delta = chunk["choices"][0].get("delta", {}).get("content", "")
                             full_response += delta
-                            yield delta
+                            yield delta  # Yield each chunk as it arrives
                     except json.JSONDecodeError as e:
                         st.error(f"Error decoding JSON: {str(e)}")
                         st.error(f"Received data: {chunk_data}")
                         yield None
-        yield full_response
 
     except requests.exceptions.RequestException as e:
         st.error(f"API request failed: {str(e)}")
