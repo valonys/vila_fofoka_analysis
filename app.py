@@ -110,7 +110,7 @@ BOT_AVATAR = "BOT_AVATAR.jpg"
 
 # Chat interface
 for msg in st.session_state.chat_history:
-    avatar = USER_AVATAR if msg["role"] == user else BOT_AVATAR
+    avatar = USER_AVATAR if msg["role"] == "user" else BOT_AVATAR
     with st.chat_message(msg["role"], avatar=avatar):
         st.markdown(msg["content"])
 
