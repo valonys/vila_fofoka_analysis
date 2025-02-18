@@ -114,7 +114,7 @@ def generate_response(prompt):
         output_cost = (output_tokens / 1000000) * 15
         total_cost_usd = input_cost + output_cost
         # Convert to AOA
-        exchange_rate = 1.16
+        exchange_rate = 1160
         total_cost_aoa = total_cost_usd * exchange_rate
 
         # Calculate speed
