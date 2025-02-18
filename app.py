@@ -29,7 +29,7 @@ st.markdown("""
     * { font-family: 'Tw Cen MT', sans-serif; }
     </style>
     """, unsafe_allow_html=True)
-st.title("🚀 ValNerdzx 🚀")
+st.title("🚀 Ataliba the Nerdzx Agent🚀")
 
 # File upload in sidebar
 with st.sidebar:
