@@ -105,7 +105,7 @@ def generate_response(prompt):
         yield f"❌ Error: {str(e)}"
 
 USER_AVATAR = "https://github.com/achilela/vila_fofoka_analysis/blob/9904d9a0d445ab0488cf7395cb863cce7621d897/USER_AVATAR.png"
-BOT_AVATAR = "BOT_AVATAR.jpg"
+BOT_AVATAR = "https://github.com/achilela/vila_fofoka_analysis/blob/c4c5c8d8ead5831178cb213fc82a22f5cb8abae6/BOT_AVATAR.jpg"
 
 
 # Chat interface
