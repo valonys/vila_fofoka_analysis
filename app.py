@@ -106,7 +106,7 @@ def generate_response(prompt):
         #speed = tokens / (time.time() - start)
         #yield f"\n\n🔑 Tokens: {tokens} | 🚀 Speed: {speed:.1f}t/s | 💵 Cost: ${tokens*0.00002:.4f}"
         # Calculate metrics
-        input_tokens = len(input_text.split())  # Assuming 'input_text' is the variable holding the user's input
+        input_tokens = len(prompt.split())  # Assuming 'input_text' is the variable holding the user's input
         output_tokens = len(full_response.split())  # 'full_response' is the chatbot's response
 
         # Calculate costs based on grok-beta pricing
