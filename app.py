@@ -104,9 +104,14 @@ def generate_response(prompt):
     except Exception as e:
         yield f"❌ Error: {str(e)}"
 
+USER_AVATAR = "USER_AVATAR.png"
+BOT_AVATAR = "BOT_AVATAR.jpg"
+
+
 # Chat interface
 for msg in st.session_state.chat_history:
-    with st.chat_message(msg["role"], avatar="🧑💻" if msg["role"] == "user" else "🤖"):
+    avatar = USER_AVATAR if msg["role"] == user else BOT_AVATAR
+    with st.chat_message(msg["role"], avatar=avatar):
         st.markdown(msg["content"])
 
 if prompt := st.chat_input("Ask about your document..."):
