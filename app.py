@@ -20,7 +20,8 @@ if not api_key:
 
 # Configure Avatars (using raw GitHub URLs)
 USER_AVATAR = "https://raw.githubusercontent.com/achilela/vila_fofoka_analysis/9904d9a0d445ab0488cf7395cb863cce7621d897/USER_AVATAR.png"
-BOT_AVATAR = "https://raw.githubusercontent.com/achilela/vila_fofoka_analysis/c4c5c8d8ead5831178cb213fc82a22f5cb8abae6/BOT_AVATAR.jpg"
+#BOT_AVATAR = "https://raw.githubusercontent.com/achilela/vila_fofoka_analysis/c4c5c8d8ead5831178cb213fc82a22f5cb8abae6/BOT_AVATAR.jpg"
+BOT_AVATAR = "https://raw.githubusercontent.com/achilela/vila_fofoka_analysis/991f4c6e4e1dc7a8e24876ca5aae5228bcdb4dba/Ataliba_Avatar.jpg"
 
 # Configure UI
 st.markdown("""
