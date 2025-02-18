@@ -122,7 +122,7 @@ if prompt := st.chat_input("Ask about your document..."):
     
     st.session_state.chat_history.append({"role": "user", "content": display_prompt})
     
-    with st.chat_message("user", avatar="🧑💻"):
+    with st.chat_message("user", avatar="avatar"):
         st.markdown(display_prompt)
     
     # Generate and stream response
