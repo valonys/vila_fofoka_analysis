@@ -104,7 +104,7 @@ def generate_response(prompt):
     except Exception as e:
         yield f"❌ Error: {str(e)}"
 
-USER_AVATAR = "USER_AVATAR.png"
+USER_AVATAR = "https://github.com/achilela/vila_fofoka_analysis/blob/9904d9a0d445ab0488cf7395cb863cce7621d897/USER_AVATAR.png"
 BOT_AVATAR = "BOT_AVATAR.jpg"
 
 
