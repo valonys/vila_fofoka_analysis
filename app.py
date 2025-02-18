@@ -18,6 +18,10 @@ if not api_key:
     st.error("API_KEY missing from .env file")
     st.stop()
 
+# Configure Avatars (using raw GitHub URLs)
+USER_AVATAR = "https://raw.githubusercontent.com/achilela/vila_fofoka_analysis/9904d9a0d445ab0488cf7395cb863cce7621d897/USER_AVATAR.png"
+BOT_AVATAR = "https://raw.githubusercontent.com/achilela/vila_fofoka_analysis/c4c5c8d8ead5831178cb213fc82a22f5cb8abae6/BOT_AVATAR.jpg"
+
 # Configure UI
 st.markdown("""
     <style>
@@ -25,14 +29,14 @@ st.markdown("""
     * { font-family: 'Tw Cen MT', sans-serif; }
     </style>
     """, unsafe_allow_html=True)
-st.title("🚀 Ataliba the Nerdx Agent 🚀")
+st.title("🚀 ValNerdzx 🚀")
 
 # File upload in sidebar
 with st.sidebar:
     st.header("📁 Upload Documents")
     uploaded_file = st.file_uploader("", type=["pdf", "docx", "xlsx", "xlsm"])
 
-# Session state for file context
+# Session state initialization
 if "file_context" not in st.session_state:
     st.session_state.file_context = None
 if "chat_history" not in st.session_state:
@@ -52,7 +56,7 @@ def parse_file(file):
         return df.to_string()
     return None
 
-# Process file but don't display until requested
+# Process file upload
 if uploaded_file and not st.session_state.file_context:
     st.session_state.file_context = parse_file(uploaded_file)
     st.sidebar.success("✅ File ready for analysis")
@@ -104,29 +108,19 @@ def generate_response(prompt):
     except Exception as e:
         yield f"❌ Error: {str(e)}"
 
-USER_AVATAR = "https://github.com/achilela/vila_fofoka_analysis/blob/9904d9a0d445ab0488cf7395cb863cce7621d897/USER_AVATAR.png"
-BOT_AVATAR = "https://github.com/achilela/vila_fofoka_analysis/blob/c4c5c8d8ead5831178cb213fc82a22f5cb8abae6/BOT_AVATAR.jpg"
-
-
 # Chat interface
 for msg in st.session_state.chat_history:
-    avatar = USER_AVATAR if msg["role"] == "user" else BOT_AVATAR
-    with st.chat_message(msg["role"], avatar=avatar):
+    with st.chat_message(msg["role"], avatar=USER_AVATAR if msg["role"] == "user" else BOT_AVATAR):
         st.markdown(msg["content"])
 
 if prompt := st.chat_input("Ask about your document..."):
-    # Add user message with optional file context
-    display_prompt = prompt
-    if st.session_state.file_context:
-        display_prompt = f"📄 Document Analysis Request:\n{prompt}"
-    
-    st.session_state.chat_history.append({"role": "user", "content": display_prompt})
-    
-    with st.chat_message("user", avatar="avatar"):
-        st.markdown(display_prompt)
-    
+    # Add user message
+    st.session_state.chat_history.append({"role": "user", "content": prompt})
+    with st.chat_message("user", avatar=USER_AVATAR):  # Avatar applied here
+        st.markdown(prompt)
+
     # Generate and stream response
-    with st.chat_message("assistant", avatar="🤖"):
+    with st.chat_message("assistant", avatar=BOT_AVATAR):  # Avatar applied here
         response_placeholder = st.empty()
         full_response = ""
         
