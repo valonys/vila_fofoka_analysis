@@ -45,7 +45,7 @@ st.markdown("""
     .st-emotion-cache-1y4p8pa { padding: 2rem 1rem; }
     </style>
     """, unsafe_allow_html=True)
-st.title("🚀 Ataliba o Agent Nerdx")
+st.title("🚀 Ataliba o Agent Nerdx 🚀")
 
 # File upload in sidebar
 with st.sidebar:
