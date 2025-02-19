@@ -153,8 +153,8 @@ def generate_response(prompt):
         speed = output_tokens / (time.time() - start)
         yield f"\n\n🔑 Input Tokens: {input_tokens} | Output Tokens: {output_tokens} | 🚀 Speed: {speed:.1f}t/s | 💵 Cost (USD): ${total_cost_usd:.4f} | 💵 Cost (AOA): {total_cost_aoa:.4f}"
         # Performance metrics
-        tokens = len(full_response.split())
-        yield f"\n\n⚡ {tokens} tokens | 🕒 {tokens/(time.time()-start):.1f}t/s | 💰 ${tokens*0.00002:.4f}"
+        #tokens = len(full_response.split())
+        #yield f"\n\n⚡ {tokens} tokens | 🕒 {tokens/(time.time()-start):.1f}t/s | 💰 ${tokens*0.00002:.4f}"
         
     except Exception as e:
         yield f"⚠️ API Error: {str(e)}"
