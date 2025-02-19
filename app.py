@@ -135,6 +135,24 @@ def generate_response(prompt):
                     continue
         
         # Performance metrics
+        # Calculate metrics
+        #tokens = len(full_response.split())
+        #speed = tokens / (time.time() - start)
+        #yield f"\n\n🔑 Tokens: {tokens} | 🚀 Speed: {speed:.1f}t/s | 💵 Cost: ${tokens*0.00002:.4f}"
+        # Calculate metrics
+        input_tokens = len(prompt.split())  # Assuming 'input_text' is the variable holding the user's input
+        output_tokens = len(full_response.split())  # 'full_response' is the chatbot's response
+        # Calculate costs based on grok-beta pricing
+        input_cost = (input_tokens / 1000000) * 5
+        output_cost = (output_tokens / 1000000) * 15
+        total_cost_usd = input_cost + output_cost
+        # Convert to AOA
+        exchange_rate = 1160
+        total_cost_aoa = total_cost_usd * exchange_rate
+        # Calculate speed
+        speed = output_tokens / (time.time() - start)
+        yield f"\n\n🔑 Input Tokens: {input_tokens} | Output Tokens: {output_tokens} | 🚀 Speed: {speed:.1f}t/s | 💵 Cost (USD): ${total_cost_usd:.4f} | 💵 Cost (AOA): {total_cost_aoa:.4f}"
+        # Performance metrics
         tokens = len(full_response.split())
         yield f"\n\n⚡ {tokens} tokens | 🕒 {tokens/(time.time()-start):.1f}t/s | 💰 ${tokens*0.00002:.4f}"
         
