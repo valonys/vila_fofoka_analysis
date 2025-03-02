@@ -65,6 +65,8 @@ if "file_context" not in st.session_state:
     st.session_state.file_context = None
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
+if "model_intro_done" not in st.session_state:
+    st.session_state.model_intro_done = False
 
 def parse_file(file):
     """Process uploaded file and return text content"""
@@ -163,8 +165,11 @@ def generate_response(prompt):
             full_response = ""
             for chunk in response:
                 if chunk.choices[0].delta.content:
-                    full_response += chunk.choices[0].delta.content
-                    yield chunk.choices[0].delta.content
+                    content = chunk.choices[0].delta.content
+                    # Remove <think> and </think> tags
+                    content = content.replace("<think>", "").replace("</think>", "")
+                    full_response += content
+                    yield content
         
         # Performance metrics
         input_tokens = len(prompt.split())
@@ -179,6 +184,34 @@ def generate_response(prompt):
         
     except Exception as e:
         yield f"⚠️ API Error: {str(e)}"
+
+# Model-specific introductions
+if not st.session_state.model_intro_done:
+    if model_alias == "EE Smartest Agent":
+        intro_message = """
+        Hi, I am **EE**, the Double E Agent! 🚀
+
+        My creator considers me a Double E agent because I am:
+        - **Pragmatic**: I solve problems efficiently.
+        - **Innovative**: My reasoning capabilities go beyond human imagination.
+        - **Smart**: I am damn smarter than most systems out there.
+
+        How can I assist you today?
+        """
+    elif model_alias == "JI Divine Agent":
+        intro_message = """
+        Hi, I am **JI**, the Divine Agent! ✨
+
+        My creator considers me a Divine Agent because I am:
+        - **Gifted**: Trained to implement advanced reasoning.
+        - **Quasi-Human**: I mimic human intelligence and rational thinking.
+        - **Divine**: My capabilities are unparalleled.
+
+        How may I assist you today?
+        """
+    
+    st.session_state.chat_history.append({"role": "assistant", "content": intro_message})
+    st.session_state.model_intro_done = True
 
 # Chat interface
 for msg in st.session_state.chat_history:
