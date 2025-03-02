@@ -7,13 +7,13 @@ from dotenv import load_dotenv
 import PyPDF2
 from docx import Document
 import pandas as pd
+import openai  # For DeepSeek API
 
 # Load environment variables
 load_dotenv()
 
 # Configure Avatars
 USER_AVATAR = "https://raw.githubusercontent.com/achilela/vila_fofoka_analysis/9904d9a0d445ab0488cf7395cb863cce7621d897/USER_AVATAR.png"
-#BOT_AVATAR = "https://raw.githubusercontent.com/achilela/vila_fofoka_analysis/c4c5c8d8ead5831178cb213fc82a22f5cb8abae6/BOT_AVATAR.jpg"
 BOT_AVATAR = "https://raw.githubusercontent.com/achilela/vila_fofoka_analysis/991f4c6e4e1dc7a8e24876ca5aae5228bcdb4dba/Ataliba_Avatar.jpg"
 
 # Preconfigured bio response
@@ -47,8 +47,16 @@ st.markdown("""
     """, unsafe_allow_html=True)
 st.title("🚀 Ataliba o Agent Nerdx 🚀")
 
-# File upload in sidebar
+# Model selection in sidebar
 with st.sidebar:
+    st.header("⚙️ Model Selection")
+    model_alias = st.selectbox(
+        "Choose your AI Agent",
+        options=["EE Smartest Agent", "JI Divine Agent"],
+        index=0,  # Default to Grok
+        help="Select the AI model for your session."
+    )
+
     st.header("📁 Document Hub")
     uploaded_file = st.file_uploader("Upload technical documents", type=["pdf", "docx", "xlsx", "xlsm"])
 
@@ -106,55 +114,68 @@ def generate_response(prompt):
         messages.append({"role": "user", "content": prompt})
         
         start = time.time()
-        response = requests.post(
-            "https://api.x.ai/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {os.getenv('API_KEY')}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "grok-beta",
-                "messages": messages,
-                "temperature": 0.2,
-                "stream": True
-            },
-            stream=True
-        )
         
-        full_response = ""
-        for line in response.iter_lines():
-            if line:
-                chunk = line.decode('utf-8').replace('data: ', '')
-                if chunk == '[DONE]': break
-                try:
-                    data = json.loads(chunk)
-                    delta = data['choices'][0]['delta'].get('content', '')
-                    full_response += delta
-                    yield delta
-                except:
-                    continue
+        if model_alias == "EE Smartest Agent":
+            # Grok API
+            response = requests.post(
+                "https://api.x.ai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {os.getenv('API_KEY')}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "grok-beta",
+                    "messages": messages,
+                    "temperature": 0.2,
+                    "stream": True
+                },
+                stream=True
+            )
+            
+            full_response = ""
+            for line in response.iter_lines():
+                if line:
+                    chunk = line.decode('utf-8').replace('data: ', '')
+                    if chunk == '[DONE]': break
+                    try:
+                        data = json.loads(chunk)
+                        delta = data['choices'][0]['delta'].get('content', '')
+                        full_response += delta
+                        yield delta
+                    except:
+                        continue
+            
+        elif model_alias == "JI Divine Agent":
+            # DeepSeek API
+            client = openai.OpenAI(
+                api_key=os.getenv("DEEPSEEK_API_KEY"),
+                base_url="https://api.sambanova.ai/v1",
+            )
+            
+            response = client.chat.completions.create(
+                model="DeepSeek-R1-Distill-Llama-70B",
+                messages=messages,
+                temperature=0.1,
+                top_p=0.1,
+                stream=True
+            )
+            
+            full_response = ""
+            for chunk in response:
+                if chunk.choices[0].delta.content:
+                    full_response += chunk.choices[0].delta.content
+                    yield chunk.choices[0].delta.content
         
         # Performance metrics
-        # Calculate metrics
-        #tokens = len(full_response.split())
-        #speed = tokens / (time.time() - start)
-        #yield f"\n\n🔑 Tokens: {tokens} | 🚀 Speed: {speed:.1f}t/s | 💵 Cost: ${tokens*0.00002:.4f}"
-        # Calculate metrics
-        input_tokens = len(prompt.split())  # Assuming 'input_text' is the variable holding the user's input
-        output_tokens = len(full_response.split())  # 'full_response' is the chatbot's response
-        # Calculate costs based on grok-beta pricing
-        input_cost = (input_tokens / 1000000) * 5
-        output_cost = (output_tokens / 1000000) * 15
+        input_tokens = len(prompt.split())
+        output_tokens = len(full_response.split())
+        input_cost = (input_tokens / 1000000) * 5  # Grok pricing example
+        output_cost = (output_tokens / 1000000) * 15  # Grok pricing example
         total_cost_usd = input_cost + output_cost
-        # Convert to AOA
-        exchange_rate = 1160
+        exchange_rate = 1160  # USD to AOA
         total_cost_aoa = total_cost_usd * exchange_rate
-        # Calculate speed
         speed = output_tokens / (time.time() - start)
         yield f"\n\n🔑 Input Tokens: {input_tokens} | Output Tokens: {output_tokens} | 🕒 Speed: {speed:.1f}t/s | 💰 Cost (USD): ${total_cost_usd:.4f} | 💵 Cost (AOA): {total_cost_aoa:.4f}"
-        # Performance metrics
-        #tokens = len(full_response.split())
-        #yield f"\n\n⚡ {tokens} tokens | 🕒 {tokens/(time.time()-start):.1f}t/s | 💰 ${tokens*0.00002:.4f}"
         
     except Exception as e:
         yield f"⚠️ API Error: {str(e)}"
